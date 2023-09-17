@@ -204,6 +204,21 @@ export default class ImageTool {
   }
 
   /**
+   * Delete file when block is removed
+   *
+   *@param {string} url - file url that is about to be deleted
+   * @returns {void}
+   */
+  async removed() {
+    // @ts-ignore
+    const url = this._data.file.url;
+
+    if (url) {
+      return this.deleteFile(url);
+    }
+  }
+
+  /**
    * Renders Block content
    *
    * @public
