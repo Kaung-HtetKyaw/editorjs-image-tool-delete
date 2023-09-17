@@ -4,7 +4,7 @@
 
 Editorjs Image Block with Delete Module for the [Editor.js](https://editorjs.io).
 
-This is the forked repository of ![Image Block for the Editor.js](https://github.com/editor-js/image) with delete module to allow deleting image when the block is removed. We highly recommend you to check out the docs from ![Image Block for the Editor.js](https://github.com/editor-js/image) first.
+This is the forked repository of [Image Block for the Editor.js](https://github.com/editor-js/image) with delete module to allow deleting image when the block is removed. We highly recommend you to check out the docs from [Image Block for the Editor.js](https://github.com/editor-js/image) first.
 
 ![](https://capella.pics/63a03d04-3816-45b2-87b2-d85e556f0066.jpg)
 
