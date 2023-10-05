@@ -246,6 +246,10 @@ export default class ImageTool {
    * @returns {HTMLDivElement}
    */
   render() {
+    if (this.data.file.url) {
+      this.ui.hideFileButton();
+    }
+
     return this.ui.render(this.data);
   }
 
@@ -271,6 +275,7 @@ export default class ImageTool {
     const caption = this.ui.nodes.caption;
 
     this._data.caption = caption.innerHTML;
+    console.log(this.data);
 
     return this.data;
   }
