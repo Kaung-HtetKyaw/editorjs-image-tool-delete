@@ -52,7 +52,6 @@ import {
   IconStretch,
   IconAddBackground,
   IconPicture,
-  IconLink,
 } from '@codexteam/icons';
 
 /**
@@ -73,7 +72,8 @@ import {
  * @property {boolean} [chooseFileOnInitiate] - optional whether or not to open file chooser when image block is rendered
  * @property {function(File): Promise.<UploadResponseFormat>} [uploader.uploadByFile] - method that upload image by File
  * @property {function(string): Promise.<UploadResponseFormat>} [uploader.uploadByUrl] - method that upload image by URL
- *  @property {function(string): Promise.<UploadResponseFormat>} [uploader.uploadWithDelegation] - method that will delegate the upload to the client
+ *  @property {function(Function): Promise.<UploadResponseFormat>} [uploader.uploadWithDelegation] - method that will delegate the upload to the client
+ * @property {string} uploadWithDelegationLabel - optional label for delegation upload method
  */
 
 /**
@@ -134,15 +134,6 @@ export default class ImageTool {
         title: 'With background',
         toggle: true,
       },
-      {
-        name: 'uploadByUrl',
-        icon: IconLink,
-        title: 'Uploady By Url',
-        allowOverride: false,
-        onSuccess: (toolData, ui) => {
-          ui.toggleFileButton(toolData);
-        },
-      },
     ];
   }
 
@@ -175,6 +166,7 @@ export default class ImageTool {
       deleter: config.deleter || undefined,
       chooseFileOnInitiate: config.chooseFileOnInitiate,
       showPreloaderForUrlUpload: config.showPreloaderForUrlUpload,
+      uploadWithDelegationLabel: config.uploadWithDelegationLabel,
     };
 
     /**
@@ -233,6 +225,10 @@ export default class ImageTool {
     // @ts-ignore
     const url = this._data.file.url;
 
+    if (this.data.pastedUrl || this.data.uploadByUrl) {
+      return;
+    }
+
     if (url) {
       return this.deleteFile(url);
     }
@@ -275,7 +271,6 @@ export default class ImageTool {
     const caption = this.ui.nodes.caption;
 
     this._data.caption = caption.innerHTML;
-    console.log(this.data);
 
     return this.data;
   }
@@ -394,6 +389,7 @@ export default class ImageTool {
       case 'pattern': {
         const url = event.detail.data;
 
+        this._data.pastedUrl = url;
         this.uploadUrl(url);
         break;
       }

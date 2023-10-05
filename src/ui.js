@@ -164,7 +164,11 @@ export default class Ui {
 
     this.attachFileButtonActions(
       button,
-      `${IconLink} ${this.api.i18n.t('Provide an URL')}`,
+      `${IconLink} ${
+        this.config.uploadWithDelegationLabel
+          ? this.config.uploadWithDelegationLabel
+          : 'Provide an URL'
+      }`,
       () => {
         this.onSelectUrl();
       }
