@@ -1,4 +1,4 @@
-import { IconPicture } from '@codexteam/icons';
+import { IconPicture, IconLink } from '@codexteam/icons';
 import { make } from './utils/dom';
 
 /**
@@ -13,17 +13,20 @@ export default class Ui {
    * @param {object} ui.api - Editor.js API
    * @param {ImageConfig} ui.config - user config
    * @param {Function} ui.onSelectFile - callback for clicks on Select file button
+   * @param {Function} ui.onSelectUrl - callback for clicks on Select url button
    * @param {boolean} ui.readOnly - read-only mode flag
    */
-  constructor({ api, config, onSelectFile, readOnly }) {
+  constructor({ api, config, onSelectFile, onSelectUrl, readOnly }) {
     this.api = api;
     this.config = config;
     this.onSelectFile = onSelectFile;
+    this.onSelectUrl = onSelectUrl;
     this.readOnly = readOnly;
     this.nodes = {
       wrapper: make('div', [this.CSS.baseClass, this.CSS.wrapper]),
       imageContainer: make('div', [this.CSS.imageContainer]),
       fileButton: this.createFileButton(),
+      urlButton: this.createUrlButton(),
       imageEl: undefined,
       imagePreloader: make('div', this.CSS.imagePreloader),
       imageDeleteLoader: make('div', this.CSS.imageDeleteLoader),
@@ -31,6 +34,7 @@ export default class Ui {
         contentEditable: !this.readOnly,
       }),
     };
+    this.fileActionCb = null;
 
     /**
      * Create base structure
@@ -47,6 +51,7 @@ export default class Ui {
     this.nodes.wrapper.appendChild(this.nodes.imageContainer);
     this.nodes.wrapper.appendChild(this.nodes.caption);
     this.nodes.wrapper.appendChild(this.nodes.fileButton);
+    this.nodes.wrapper.appendChild(this.nodes.urlButton);
   }
 
   /**
@@ -70,6 +75,8 @@ export default class Ui {
       imageDeleteLoader: 'image-tool__image-deleteloader',
       imageEl: 'image-tool__image-picture',
       caption: 'image-tool__caption',
+      fileButton: 'image-tool__button',
+      activeButton: 'image-tool__button--active',
     };
   }
 
@@ -107,20 +114,61 @@ export default class Ui {
   }
 
   /**
+   *
+   * @param {Element} button
+   * @param {string} innerHTML
+   * @param {Function} onClick
+   */
+  attachFileButtonActions(button, innerHTML, onClick) {
+    if (this.fileActionCb) {
+      button.removeEventListener('click', this.fileActionCb);
+    }
+
+    button.innerHTML = innerHTML;
+    this.fileActionCb = onClick;
+    button.addEventListener('click', onClick);
+  }
+
+  /**
    * Creates upload-file button
    *
    * @returns {Element}
    */
   createFileButton() {
-    const button = make('div', [this.CSS.button]);
+    const button = make('div', [
+      this.CSS.button,
+      this.CSS.fileButton,
+      this.CSS.activeButton,
+    ]);
 
-    button.innerHTML =
+    this.attachFileButtonActions(
+      button,
       this.config.buttonContent ||
-      `${IconPicture} ${this.api.i18n.t('Select an Image')}`;
+        `${IconPicture} ${this.api.i18n.t('Select an Image')}`,
+      () => {
+        this.onSelectFile();
+      }
+    );
 
-    button.addEventListener('click', () => {
-      this.onSelectFile();
-    });
+    return button;
+  }
+
+  /**
+   * Creates upload by url button
+   *
+   * @returns {Element}
+   * @param {ImageToolData} toolData
+   */
+  createUrlButton() {
+    const button = make('div', [this.CSS.button, this.CSS.fileButton]);
+
+    this.attachFileButtonActions(
+      button,
+      `${IconLink} ${this.api.i18n.t('Provide an URL')}`,
+      () => {
+        this.onSelectUrl();
+      }
+    );
 
     return button;
   }
@@ -145,6 +193,34 @@ export default class Ui {
   hidePreloader() {
     this.nodes.imagePreloader.style.backgroundImage = '';
     this.toggleStatus(Ui.status.EMPTY);
+  }
+
+  /**
+   * Toggle the active state between file button and url button
+   *
+   * @param {ImageToolData} toolData
+   */
+  toggleFileButton(toolData) {
+    this.nodes.fileButton.classList.toggle(
+      `${this.CSS.activeButton}`,
+      !toolData.uploadByUrl
+    );
+
+    this.nodes.urlButton.classList.toggle(
+      `${this.CSS.activeButton}`,
+      toolData.uploadByUrl
+    );
+  }
+
+  /**
+   * hide buttons
+   *
+   * @returns {void}
+   */
+  hideFileButton() {
+    this.nodes.fileButton.classList.toggle(`${this.CSS.activeButton}`, false);
+
+    this.nodes.urlButton.classList.toggle(`${this.CSS.activeButton}`, false);
   }
 
   /**

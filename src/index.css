@@ -3,6 +3,14 @@
   --front-color: #388ae5;
   --border-color: #e8e8eb;
 
+  &__button {
+    display: none !important;
+  }
+
+  &__button--active {
+    display: flex !important;
+  }
+
   &__image {
     border-radius: 3px;
     overflow: hidden;

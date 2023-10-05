@@ -52,6 +52,7 @@ import {
   IconStretch,
   IconAddBackground,
   IconPicture,
+  IconLink,
 } from '@codexteam/icons';
 
 /**
@@ -68,8 +69,11 @@ import {
  * @property {string} buttonContent - overrides for Select File button
  * @property {object} [uploader] - optional custom uploader
  * @property {object} [deleter] - optional custom deleter
+ * @property {boolean} [showPreloaderForUrlUpload] - optional whether or not to show preloader when pasting image url
+ * @property {boolean} [chooseFileOnInitiate] - optional whether or not to open file chooser when image block is rendered
  * @property {function(File): Promise.<UploadResponseFormat>} [uploader.uploadByFile] - method that upload image by File
  * @property {function(string): Promise.<UploadResponseFormat>} [uploader.uploadByUrl] - method that upload image by URL
+ *  @property {function(string): Promise.<UploadResponseFormat>} [uploader.uploadWithDelegation] - method that will delegate the upload to the client
  */
 
 /**
@@ -130,6 +134,15 @@ export default class ImageTool {
         title: 'With background',
         toggle: true,
       },
+      {
+        name: 'uploadByUrl',
+        icon: IconLink,
+        title: 'Uploady By Url',
+        allowOverride: false,
+        onSuccess: (toolData, ui) => {
+          ui.toggleFileButton(toolData);
+        },
+      },
     ];
   }
 
@@ -160,6 +173,8 @@ export default class ImageTool {
       uploader: config.uploader || undefined,
       actions: config.actions || [],
       deleter: config.deleter || undefined,
+      chooseFileOnInitiate: config.chooseFileOnInitiate,
+      showPreloaderForUrlUpload: config.showPreloaderForUrlUpload,
     };
 
     /**
@@ -192,6 +207,11 @@ export default class ImageTool {
             this.ui.showPreloader(src);
           },
         });
+      },
+      onSelectUrl: () => {
+        this.config.uploader.uploadWithDelegation(
+          this.uploadUrlWithDelegation.bind(this)
+        );
       },
       readOnly,
     });
@@ -267,22 +287,33 @@ export default class ImageTool {
     // @see https://github.com/editor-js/image/pull/49
     const tunes = ImageTool.tunes.concat(this.config.actions);
 
-    return tunes.map((tune) => ({
-      icon: tune.icon,
-      label: this.api.i18n.t(tune.title),
-      name: tune.name,
-      toggle: tune.toggle,
-      isActive: this.data[tune.name],
-      onActivate: () => {
-        /* If it'a user defined tune, execute it's callback stored in action property */
-        if (typeof tune.action === 'function') {
-          tune.action(tune.name);
+    // when image is present only allow tunes that allow overriding of the existing image's settings
+    return tunes
+      .filter(
+        (tune) =>
+          tune.allowOverride !== false ||
+          (!this._data.file.url && tune.allowOverride === false)
+      )
+      .map((tune) => ({
+        icon: tune.icon,
+        label: this.api.i18n.t(tune.title),
+        name: tune.name,
+        toggle: tune.toggle,
+        isActive: this.data[tune.name],
+        onActivate: () => {
+          /* If it'a user defined tune, execute it's callback stored in action property */
+          if (typeof tune.action === 'function') {
+            tune.action(tune.name);
 
-          return;
-        }
-        this.tuneToggled(tune.name);
-      },
-    }));
+            return;
+          }
+          this.tuneToggled(tune.name);
+
+          if (tune.onSuccess) {
+            tune.onSuccess(this.data, this.ui);
+          }
+        },
+      }));
   }
 
   /**
@@ -292,7 +323,9 @@ export default class ImageTool {
    * @public
    */
   appendCallback() {
-    this.ui.nodes.fileButton.click();
+    if (this.config.chooseFileOnInitiate) {
+      this.ui.nodes.fileButton.click();
+    }
   }
 
   /**
@@ -366,6 +399,7 @@ export default class ImageTool {
         break;
       }
     }
+    this.ui.hideFileButton();
   }
 
   /**
@@ -550,8 +584,25 @@ export default class ImageTool {
    * @returns {void}
    */
   uploadUrl(url) {
-    this.ui.showPreloader(url);
+    if (this.config.showPreloaderForUrlUpload) {
+      this.ui.showPreloader(url);
+    }
+    this.ui.hidePreloader();
     this.uploader.uploadByUrl(url);
+  }
+
+  /**
+   *
+   * @param {string} url
+   * @returns {void}
+   */
+  uploadUrlWithDelegation(url) {
+    if (this.config.showPreloaderForUrlUpload) {
+      this.ui.showPreloader(url);
+    }
+    this.ui.hidePreloader();
+    this.uploader.uploadByUrl(url);
+    this.ui.hideFileButton();
   }
 
   /**
