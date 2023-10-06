@@ -271,6 +271,7 @@ export default class ImageTool {
     const caption = this.ui.nodes.caption;
 
     this._data.caption = caption.innerHTML;
+    console.log(this.data);
 
     return this.data;
   }
@@ -419,6 +420,8 @@ export default class ImageTool {
     this.image = data.file;
 
     this._data.caption = data.caption || '';
+    this._data.pastedUrl = data.pastedUrl || '';
+    this._data.uploadByUrl = data.uploadByUrl || false;
     this.ui.fillCaption(this._data.caption);
 
     ImageTool.tunes.forEach(({ name: tune }) => {
