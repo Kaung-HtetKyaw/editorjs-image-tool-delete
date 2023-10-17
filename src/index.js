@@ -245,6 +245,7 @@ export default class ImageTool {
     if (this.data.file.url) {
       this.ui.hideFileButton();
     }
+    console.log(this.data);
 
     return this.ui.render(this.data);
   }
@@ -471,6 +472,7 @@ export default class ImageTool {
   onUpload(response) {
     if (response.success && response.file) {
       this.image = response.file;
+      this.ui.hideFileButton();
     } else {
       this.uploadingFailed('incorrect response: ' + JSON.stringify(response));
     }
