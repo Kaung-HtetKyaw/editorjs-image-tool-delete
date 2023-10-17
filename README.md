@@ -86,18 +86,21 @@ var editor = EditorJS({
 
 Image Tool supports these configuration parameters:
 
-| Field                    | Type                                                | Description                                                                                                                                                                             |
-| ------------------------ | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| endpoints                | `{byFile: string, byUrl: string}`                   | Endpoints for file uploading. <br> Contains 2 fields: <br> **byFile** - for file uploading <br> **byUrl** - for uploading by URL                                                        |
-| field                    | `string`                                            | (default: `image`) Name of uploaded image field in POST request                                                                                                                         |
-| types                    | `string`                                            | (default: `image/*`) Mime-types of files that can be [accepted with file selection](https://github.com/codex-team/ajax#accept-string).                                                  |
-| additionalRequestData    | `object`                                            | Object with any data you want to send with uploading requests                                                                                                                           |
-| additionalRequestHeaders | `object`                                            | Object with any custom headers which will be added to request. [See example](https://github.com/codex-team/ajax/blob/e5bc2a2391a18574c88b7ecd6508c29974c3e27f/README.md#headers-object) |
-| captionPlaceholder       | `string`                                            | (default: `Caption`) Placeholder for Caption input                                                                                                                                      |
-| buttonContent            | `string`                                            | Allows to override HTML content of «Select file» button                                                                                                                                 |
-| uploader                 | `{{uploadByFile: function, uploadByUrl: function}}` | Optional custom uploading methods. See details below.                                                                                                                                   |
-| deleter                  | `{{deleteFile: function}}`                          | Optional custom deleting methods. See details below.                                                                                                                                    |
-| actions                  | `array`                                             | Array with custom actions to show in the tool's settings menu. See details below.                                                                                                       |
+| Field                     | Type                                                                                | Description                                                                                                                                                                             |
+| ------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| endpoints                 | `{byFile: string, byUrl: string}`                                                   | Endpoints for file uploading. <br> Contains 2 fields: <br> **byFile** - for file uploading <br> **byUrl** - for uploading by URL                                                        |
+| field                     | `string`                                                                            | (default: `image`) Name of uploaded image field in POST request                                                                                                                         |
+| types                     | `string`                                                                            | (default: `image/*`) Mime-types of files that can be [accepted with file selection](https://github.com/codex-team/ajax#accept-string).                                                  |
+| additionalRequestData     | `object`                                                                            | Object with any data you want to send with uploading requests                                                                                                                           |
+| additionalRequestHeaders  | `object`                                                                            | Object with any custom headers which will be added to request. [See example](https://github.com/codex-team/ajax/blob/e5bc2a2391a18574c88b7ecd6508c29974c3e27f/README.md#headers-object) |
+| captionPlaceholder        | `string`                                                                            | (default: `Caption`) Placeholder for Caption input                                                                                                                                      |
+| buttonContent             | `string`                                                                            | Allows to override HTML content of «Select file» button                                                                                                                                 |
+| uploader                  | `{{uploadByFile: function, uploadByUrl: function, uploadWithDelegation: function}}` | Optional custom uploading methods. See details below.                                                                                                                                   |
+| deleter                   | `{{deleteFile: function}}`                                                          | Optional custom deleting methods. See details below.                                                                                                                                    |
+| actions                   | `array`                                                                             | Array with custom actions to show in the tool's settings menu. See details below.                                                                                                       |
+| chooseFileOnInitiate      | `boolean`                                                                           | (default: `false`) Boolean value to indicate if the modal for choosing file should open or not.                                                                                         |
+| showPreloaderForUrlUpload | `boolean`                                                                           | (default: `false`) Boolean value to indicate if preloader should be shown when url is pasted.                                                                                           |
+| uploadWithDelegationLabel | `string`                                                                            | (default: `Provide an URL`) Tune label for `uploader.uploadWithDelegation` method.                                                                                                      |
 
 Note that if you don't implement your custom uploader methods, the `endpoints` param is required.
 
@@ -132,6 +135,88 @@ var editor = EditorJS({
         }
       }
     }
+    }
+  }
+
+  ...
+});
+```
+
+## Providing custom uploading methods
+
+As mentioned at the Config Params section, you have an ability to provide own custom uploading methods.
+It is a quite simple: implement `uploadByFile` and `uploadByUrl` methods and pass them via `uploader` config param.
+Both methods must return a Promise that resolves with response in a format that described at the [backend response format](#server-format) section.
+
+| Method               | Arguments  | Return value                         | Description                                                                                         |
+| -------------------- | ---------- | ------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| uploadByFile         | `File`     | `{Promise.<{success, file: {url}}>}` | Upload file to the server and return an uploaded image data                                         |
+| uploadByUrl          | `string`   | `{Promise.<{success, file: {url}}>}` | Send URL-string to the server, that should load image by this URL and return an uploaded image data |
+| uploadWithDelegation | `Function` | `void`                               | Provide a callback `function` as argument to let client implement it's own url choosing mechanism.  |
+
+Example:
+
+```js
+import ImageTool from '@editorjs/image';
+
+var editor = EditorJS({
+  ...
+
+  tools: {
+    ...
+    image: {
+      class: ImageTool,
+      config: {
+        /**
+         * Custom uploader
+         */
+        uploader: {
+          /**
+           * Upload file to the server and return an uploaded image data
+           * @param {File} file - file selected from the device or pasted by drag-n-drop
+           * @return {Promise.<{success, file: {url}}>}
+           */
+          uploadByFile(file){
+            // your own uploading logic here
+            return MyAjax.upload(file).then(() => {
+              return {
+                success: 1,
+                file: {
+                  url: 'https://codex.so/upload/redactor_images/o_80beea670e49f04931ce9e3b2122ac70.jpg',
+                  // any other image data you want to store, such as width, height, color, extension, etc
+                }
+              };
+            });
+          },
+
+          /**
+           * Send URL-string to the server. Backend should load image by this URL and return an uploaded image data
+           * @param {string} url - pasted image URL
+           * @return {Promise.<{success, file: {url}}>}
+           */
+          uploadByUrl(url){
+            // your ajax request for uploading
+            return MyAjax.upload(file).then(() => {
+              return {
+                success: 1,
+                file: {
+                  url: 'https://codex.so/upload/redactor_images/o_e48549d1855c7fc1807308dd14990126.jpg',,
+                  // any other image data you want to store, such as width, height, color, extension, etc
+                }
+              }
+            })
+          }
+
+           /**
+           * Send URL-string to the server. Backend should load image by this URL and return an uploaded image data
+           * @param {string} url - pasted image URL
+           * @return {Promise.<{success, file: {url}}>}
+           */
+          uploadWithDelegation(callbackToTriggerUpload: (url: string) => void){
+            // Add your client's image url selection implementation here
+          }
+        }
+      }
     }
   }
 
