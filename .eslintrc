@@ -6,5 +6,37 @@
     "fetch": true,
     "ImageConfig": true,
     "ImageToolData": true
+  },
+  "rules": {
+    "no-console": [
+      "error",
+      {
+        "allow": [
+          "warn",
+          "dir",
+          "time",
+          "timeEnd",
+          "timeLog",
+          "trace",
+          "assert",
+          "clear",
+          "count",
+          "countReset",
+          "group",
+          "groupEnd",
+          "table",
+          "debug",
+          "info",
+          "dirxml",
+          "error",
+          "groupCollapsed",
+          "Console",
+          "profile",
+          "profileEnd",
+          "timeStamp",
+          "context"
+        ]
+      }
+    ],
   }
 }
