@@ -500,6 +500,7 @@ export default class ImageTool {
    * @returns {void}
    */
   uploadingFailed(errorText) {
+    // eslint-disable-next-line no-console
     console.log('Image Tool: uploading failed because of', errorText);
 
     this.api.notifier.show({
@@ -517,6 +518,7 @@ export default class ImageTool {
    * @returns {void}
    */
   deletingingFailed(errorText) {
+    // eslint-disable-next-line no-console
     console.log('Image Tool: deleting failed because of', errorText);
 
     this.api.notifier.show({
