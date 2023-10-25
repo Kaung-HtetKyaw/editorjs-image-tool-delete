@@ -603,6 +603,11 @@ export default class ImageTool {
    * @returns {void}
    */
   uploadUrlWithDelegation(url) {
+    // do not reupload the previous blocks
+    if (this.data.file.url) {
+      return;
+    }
+
     if (this.config.showPreloaderForUrlUpload) {
       this.ui.showPreloader(url);
     }
