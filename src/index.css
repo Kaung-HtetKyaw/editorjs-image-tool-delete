@@ -51,7 +51,11 @@
     }
   }
 
-  &__caption {
+  &__alt {
+    margin-top: 20px
+  }
+
+  &__caption, &__alt {
     &[contentEditable="true"][data-placeholder]::before {
       position: absolute !important;
       content: attr(data-placeholder);
@@ -79,7 +83,7 @@
 
   &--empty,
   &--loading {
-    ^&__caption {
+    ^&__caption,^&__alt {
       display: none;
     }
   }
