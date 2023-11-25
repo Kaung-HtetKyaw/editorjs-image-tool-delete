@@ -33,6 +33,9 @@ export default class Ui {
       caption: make('div', [this.CSS.input, this.CSS.caption], {
         contentEditable: !this.readOnly,
       }),
+      alt: make('div', [this.CSS.input, this.CSS.alt], {
+        contentEditable: !this.readOnly,
+      }),
     };
     this.fileActionCb = null;
 
@@ -47,9 +50,11 @@ export default class Ui {
      *  </wrapper>
      */
     this.nodes.caption.dataset.placeholder = this.config.captionPlaceholder;
+    this.nodes.alt.dataset.placeholder = this.config.altPlaceholder;
     this.nodes.imageContainer.appendChild(this.nodes.imagePreloader);
     this.nodes.wrapper.appendChild(this.nodes.imageContainer);
     this.nodes.wrapper.appendChild(this.nodes.caption);
+    this.nodes.wrapper.appendChild(this.nodes.alt);
     this.nodes.wrapper.appendChild(this.nodes.fileButton);
     this.nodes.wrapper.appendChild(this.nodes.urlButton);
   }
@@ -75,6 +80,7 @@ export default class Ui {
       imageDeleteLoader: 'image-tool__image-deleteloader',
       imageEl: 'image-tool__image-picture',
       caption: 'image-tool__caption',
+      alt: 'image-tool__alt',
       fileButton: 'image-tool__button',
       activeButton: 'image-tool__button--active',
     };
@@ -329,6 +335,18 @@ export default class Ui {
   fillCaption(text) {
     if (this.nodes.caption) {
       this.nodes.caption.innerHTML = text;
+    }
+  }
+
+  /**
+   * Shows alt input
+   *
+   * @param {string} text - caption text
+   * @returns {void}
+   */
+  fillAlt(text) {
+    if (this.nodes.alt) {
+      this.nodes.alt.innerHTML = text;
     }
   }
 
